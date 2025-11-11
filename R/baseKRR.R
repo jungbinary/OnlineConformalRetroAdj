@@ -10,7 +10,6 @@ compute_dist_sq <- function(x, y) {
   n1 <- sqrt(rowSums(X1^2))
   n2 <- sqrt(rowSums(X2^2))
   
-  # outer products for norms, avoid division by zero
   n1n2 <- n1 %o% n2
   n1n2_safe <- pmax(n1n2, eps)
   
@@ -23,7 +22,6 @@ compute_dist_sq <- function(x, y) {
   Sigma     <- (n1n2 / pi) * (sin(th) + (pi - th) * cos_th)
   Sigma_dot <- (pi - th) / pi
   
-  # when either norm=0, define Sigma term to 0 (consistent with formula)
   Sigma[n1n2 < eps] <- 0
   
   K <- Sigma + Sigma_dot
@@ -60,11 +58,9 @@ krr_init <- function(X_init, y_init, kernel = "rbf", sigma = NULL, lambda = NULL
       sigma_med <- sqrt(median(dist_vec))
       sigma_grid <- sigma_med * 2^seq(-3, 3, length.out = 10)
     } else {
-      # 사용자가 스칼라/벡터 넣어도 그대로 그리드로 사용
       sigma_grid <- as.numeric(sigma)
     }
   } else {
-    # RBF가 아니면 sigma는 의미 없거나(예: NTK) 고정값 사용
     sigma_fixed <- sqrt(d)
     sigma_grid <- sigma_fixed
   }
@@ -76,7 +72,6 @@ krr_init <- function(X_init, y_init, kernel = "rbf", sigma = NULL, lambda = NULL
   best_model <- NULL
   
   for (s in sigma_grid){
-    # 커널 행렬 계산 (NTK 등에서는 내부에서 s 무시되도록 compute_kernel_mat가 처리)
     K <- compute_kernel_mat(X_init, X_init, sigma = s, kernel = kernel)
     
     for (l in lambda_grid){
