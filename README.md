@@ -36,3 +36,10 @@ If you find this repository useful, in addition to the relevant methods, please 
 
 For questions about the implementation or replication of the paper, please contact:  
 - Jungbin Jun - jungbini03@inha.edu
+
+## Acknowledgements
+
+The implementations of **DtACI** and **AgACI** algorithms included in this repository are adapted from the implemented code released by **Issac Gibbs**. [https://github.com/isgibbs/DtACI](https://github.com/isgibbs/DtACI)
+
+We gratefully acknowledge the authors for making their work publicly available,  
+which served as a foundation for reproducing and extending the ACI-family algorithms in this study.
