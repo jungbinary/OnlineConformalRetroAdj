@@ -1,0 +1,57 @@
+Reproducibility Notes: Random Seeds and Data Ordering
+=====================================================
+
+This document summarizes the random seed settings used in the experiments and clarifies
+the deterministic data-ordering conventions adopted in the real-data scripts.
+
+1. Repeated Synthetic Experiments
+---------------------------------
+
+The main repeated synthetic experiments are based on 50 replications.
+
+(a) simulations/sim_setting1_syn.R
+- Master seed used in `run_sim_parallel()`: 2025
+- Number of replications in the executed experiment: R = 50
+- Realized per-replication data-generation seeds: 2026, 2027, ..., 2075
+- The data generator `gen_beta_shift_only()` has default seed = 2025
+- The parallel loop is executed with `future.seed = TRUE`
+
+(b) simulations/sim_setting2_syn.R
+- Master seed used in `run_sim_parallel_sim2()`: 2025
+- Number of replications in the executed experiment: R = 50
+- Realized per-replication data-generation seeds: 2026, 2027, ..., 2075
+- The data generator `gen_wendland()` is called with seed = 2025 + i
+- The parallel loop is executed with `future.seed = TRUE`
+
+Accordingly, for the two main repeated synthetic experiments, the primary master seed is 2025,
+and the realized dataset-generation seeds are 2026 through 2075.
+
+2. Single-Run Synthetic Illustration Scripts
+--------------------------------------------
+
+(a) simulations/sim_local_syn.R
+- Setting 1 single-run seed: 2020
+- Setting 2 single-run seed: 10
+- Note: although the helper generator for Setting 1 has default seed = 2025, the executed
+  example in this script uses seed = 2020
+
+(b) simulations/sim_robust.R
+- Synthetic data seed used in the executed script: 2026
+
+3. Real-Data Scripts
+--------------------
+
+(a) simulations/sim_realworld_crime.R
+- Explicit random seed: `set.seed(2026)`
+
+(b) simulations/sim_realworld_elec2.R
+- No explicit random seed is set in the script
+
+(c) simulations/sim_realworld_stock.R
+- No explicit random seed is set in the script
+
+(d) simulations/sim_dtaci_window_sensitivity.R
+- No explicit random seed is set in the script
+
+(e) simulations/sim_NTK.R
+- No explicit random seed is set in the script
