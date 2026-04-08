@@ -1,29 +1,43 @@
 # Online Conformal Inference with Retrospective Adjustment
 
-This repository contains the implementation of the paper
-> **"Online Conformal Inference with Retrospective Adjustment for Faster Adaptation to Distribution Shift"**  
-> Jungbin Jun and Ilsang Ohn, 2025.
+> **Online Conformal Inference with Retrospective Adjustment for Faster Adaptation to Distribution Shift**  
+> Jungbin Jun and Ilsang Ohn, 2025
 
-Preprint available on arXiv:
-<https://arxiv.org/abs/2511.04275>
+Preprint available on arXiv: <https://arxiv.org/abs/2511.04275>
 
-The code implements the proposed **RetroAdj** method with efficient leave-one-out computation, as well as several competing online conformal prediction algorithms.
-This repository provides scripts to reproduce the synthetic experiments and real-data applications reported in the paper.
+This repository provides code for the proposed RetroAdj method, including an efficient leave-one-out implementation, along with the baseline methods used in the paper. It also includes scripts for reproducing the synthetic experiments and real-data analyses reported in the manuscript.
 
-## Repository structure
+## Repository Structure
 
 ```text
 .
-├── R/                   # Core functions for Conformal Methods
-├── aci/                 # Miscoverage Update Algorithms
-├── simulations/         # Scripts for experiments and figure reproduction
-├── call_dependencies.R  # Installs and loads all required R packages
+├── R/                         # Core R implementations
+├── python/                    # Python helpers for River-based baselines
+├── aci/                       # Adaptive conformal update rules
+├── experiments/               # All runnable experiments
+│   ├── main/
+│   │   ├── simulation_study/  # Main synthetic experiments
+│   │   └── real_data/         # Main real-data experiments
+│   └── appendix/              # Appendix-only experiments
+│       ├── window_sensitivity/
+│       └── runtime_benchmark/
+├── setup.R                    # Loads required packages and sources the main code
+├── reproducibility_notes.txt  # Experiment map in manuscript order
+├── requirements.txt
+├── README.md
 └── .gitignore
 ```
 
+## Reproducibility
+
+To reproduce the experiments in the paper, start from `experiments/`.  
+The main results are organized under `experiments/main/`, and additional appendix analyses are provided under `experiments/appendix/`.
+
 ## Citation
-If you find this repository useful, in addition to the relevant methods, please cite:
-```text
+
+If you use this repository in your research, please cite:
+
+```bibtex
 @article{jun2025online,
   title={Online Conformal Inference with Retrospective Adjustment for Faster Adaptation to Distribution Shift},
   author={Jun, Jungbin and Ohn, Ilsang},
@@ -34,12 +48,12 @@ If you find this repository useful, in addition to the relevant methods, please 
 
 ## Contact
 
-For questions about the implementation or replication of the paper, please contact:  
-- Jungbin Jun - jungbini03@inha.edu
+For questions regarding the code or reproducibility of the results, please contact:
+
+- Jungbin Jun — jungbini03@inha.edu
 
 ## Acknowledgements
 
-The implementations of **DtACI** and **AgACI** algorithms included in this repository are adapted from the implemented code released by **Issac Gibbs**. [https://github.com/isgibbs/DtACI](https://github.com/isgibbs/DtACI)
+The implementations of **DtACI** and **AgACI** included in this repository are adapted from the publicly available code released by **Isaac Gibbs**:
 
-We gratefully acknowledge the authors for making their work publicly available,  
-which served as a foundation for reproducing and extending the ACI-family algorithms in this study.
+<https://github.com/isgibbs/DtACI>

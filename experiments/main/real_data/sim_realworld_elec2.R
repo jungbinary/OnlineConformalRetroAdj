@@ -5,64 +5,74 @@ suppressPackageStartupMessages({
   library(zoo)
   library(tidyr)
   library(patchwork)
-  library(ggforce)
+  library(latex2exp)
 })
 
-csv_path = "./simulations/AIG.csv"
+source_if_missing <- function(fun_name, path) {
+  if (!exists(fun_name, mode = "function")) {
+    source(path, encoding = "UTF-8")
+  }
+}
 
-dat <- read.csv(csv_path)
-head(dat)
-y_all <- dat[(9012-3000):(9012+3000),'Close']
+source_if_missing("dtaci", "aci/dtaci.R")
+source_if_missing("agaci", "aci/agaci.R")
+source_if_missing("sfogd", "aci/sfogd.R")
+source_if_missing("saocp", "aci/saocp.R")
+source_if_missing("krr_init", "R/baseKRR.R")
+source_if_missing("conformalRetroAdj", "R/conformalRetroAdj.R")
+source_if_missing("forwardKRR", "R/forwardKRR.R")
+source_if_missing("forwardMOA", "R/forwardMOA.R")
+source_if_missing("forwardRiver", "R/forwardRiver.R")
 
-library(ggplot2)
-library(scales) 
+load_elec2 <- function(csv_path = "data/real/elec2.csv") {
+  csv_candidates <- unique(c(
+    csv_path,
+    file.path(getwd(), "data", "real", "elec2.csv"),
+    file.path("data", "real", "elec2.csv")
+  ))
+  csv_existing <- csv_candidates[file.exists(csv_candidates)]
+  
+  if (exists("elec2", where = as.environment("package:dynaTree"), inherits = FALSE)) {
+    data("elec2", package = "dynaTree")
+    as.data.frame(elec2)
+  } else if (length(csv_existing)) {
+    read.csv(csv_existing[[1]])
+  } else stop("elec2 dataset not found.")
+}
 
-idx <- (9012 - 3000):(9012 + 3000)
-dates_all   <- as.Date(dat[idx, "Date"])
-dates_embed <- dates_all[(lag_k + 250 + 1):length(dates_all)]
-
-df_plot <- data.frame(
-  Date  = as.Date(dat[idx, "Date"]),  
-  Close = dat[idx, "Close"]
-)
-
-crisis_date <- as.Date("2008-09-15")
-
-ggplot(df_plot, aes(x = Date, y = Close)) +
-  geom_line(color = "orange", linewidth = 1.1) +
-  geom_vline(xintercept = as.numeric(crisis_date),
-             linetype = "dashed", color = "gray40", linewidth = 0.8) +
-  annotate("text",
-           x = crisis_date + 60, 
-           y = max(df_plot$Close) * 0.95,
-           label = "2008-09-15", color = "gray40", size = 3.8, hjust = 0) +
-  labs(
-    x = "Date",
-    y = "Closing Price (USD)"
-  ) +
-  scale_x_date(
-    date_labels = "%Y-%m",      
-    date_breaks = "5 year"   
-  ) +
-  base_theme
-
-start_date <- as.Date(dat[(9012 - 3000 + 250 + 250):(9012+3000), "Date"])
-tail(start_date)
+dat <- load_elec2()
+dat <- na.omit(dat)
+target <- "nswprice"
+y_all <- dat[[target]]
 
 lag_k <- 10L
 X_embed <- embed(y_all, lag_k + 1)
 
-G <- X_embed
+G <- rbind(
+  X_embed[1:250, , drop = FALSE],
+  X_embed[(nrow(X_embed) - 2750 + 1):nrow(X_embed), , drop = FALSE]
+)
+
 y <- G[, 1]
 X <- G[, -1, drop = FALSE]
 
 t_init_n <- 250
 alpha0 <- 0.1
+py_module_dir <- file.path(getwd(), "python")
 
 rst_1 <- conformalRetroAdj(X, y, t_init = t_init_n, alpha = alpha0, kernel = "rbf", methods = "dtaci")
 rst_2 <- forwardKRR(X, y, t_init = t_init_n, alpha = alpha0, kernel = "rbf", methods = "dtaci")
-rst_3 <- forwardMOA(X, y, t_init = t_init_n, w = 250, alpha = alpha0, moa_model = "FIMTDD", methods = "dtaci")
+rst_3 <- forwardMOA(X, y, t_init = t_init_n, w = 250, alpha = alpha0, methods = "dtaci")
 rst_4 <- forwardMOA(X, y, t_init = t_init_n, w = 250, alpha = alpha0, moa_model = "AMRulesRegressor", methods = "dtaci")
+rst_5 <- forwardRiver(
+  X, y,
+  t_init = t_init_n,
+  w = 250,
+  alpha = alpha0,
+  methods = "dtaci",
+  river_model = "AMFRegressor",
+  py_module_path = py_module_dir
+)
 
 safe_len_mean <- function(rst) {
   if (!is.null(rst$U) && !is.null(rst$L)) mean(rst$U - rst$L, na.rm = TRUE)
@@ -86,11 +96,12 @@ print_results <- function(..., digits = 4) {
   invisible(df)
 }
 
-print_results(
+result_summary <- print_results(
   "RetroAdj" = rst_1,
   "FW-KRR" = rst_2,
   "FW-FIMTDD" = rst_3,
   "FW-AMRules" = rst_4,
+  "FW-River" = rst_5
 )
 
 local_coverage <- function(err_vec, w) 1 - rollmean(err_vec, k = w, fill = NA, align = "right")
@@ -98,19 +109,26 @@ local_mean     <- function(x, w)        rollmean(x, k = w, fill = NA, align = "r
 
 label_and_shift <- function(df_wide, t_init, w_keep, value_name){
   df_wide %>%
-    pivot_longer(c("retro","okrr","otree","orule"),
+    pivot_longer(c("retro","okrr","otree","orule","oriver"),
                  names_to = "Method_key", values_to = value_name) %>%
     mutate(
       Method = recode(Method_key,
                       retro = "RetroAdj", okrr = "FW-KRR",
-                      otree = "FW-FIMTDD",   orule = "FW-AMRules"),
-      Method = factor(Method, levels = c("FW-FIMTDD","FW-AMRules","FW-KRR","RetroAdj")),
+                      otree = "FW-FIMTDD", orule = "FW-AMRules",
+                      oriver = "FW-River"),
+      Method = factor(Method, levels = c("FW-FIMTDD","FW-AMRules","FW-River","FW-KRR","RetroAdj")),
       x_plot = t + t_init
     ) %>%
     filter(t >= w_keep)
 }
 
-pal <- c("FW-FIMTDD"="#90C8AC","FW-AMRules"="#E3C57B","FW-KRR"="#B8A9C9","RetroAdj"="#EE6A70")
+pal <- c(
+  "FW-FIMTDD" = "#90C8AC",
+  "FW-AMRules" = "#E3C57B",
+  "FW-River" = "#5AA9E6",
+  "FW-KRR" = "#B8A9C9",
+  "RetroAdj" = "#EE6A70"
+)
 base_theme <- theme_bw(base_size = 15) +
   theme(plot.title=element_text(face="bold", size=14),
         plot.subtitle=element_text(size=15),
@@ -118,27 +136,30 @@ base_theme <- theme_bw(base_size = 15) +
         axis.title.y  = element_text(size = 15),
         legend.position="bottom")
 
-build_long <- function(sim_retro, sim_okrr, sim_otree, sim_orule, t_init, w_cov, w_len, date){
-  
+build_long <- function(sim_retro, sim_okrr, sim_otree, sim_orule, sim_oriver, t_init, w_cov, w_len){
+  # coverage
   df_cov <- tibble(
-    t     = date[251:5741],
-    retro = local_coverage(sim_retro$err_t, w_cov)[251:5741],
-    okrr  = local_coverage(sim_okrr$err_t,  w_cov)[251:5741],
-    otree = local_coverage(sim_otree$err_t, w_cov)[251:5741],
-    orule = local_coverage(sim_orule$err_t, w_cov)[251:5741]
+    t     = seq_along(sim_retro$err_t),
+    retro = local_coverage(sim_retro$err_t, w_cov),
+    okrr  = local_coverage(sim_okrr$err_t,  w_cov),
+    otree = local_coverage(sim_otree$err_t, w_cov),
+    orule = local_coverage(sim_orule$err_t, w_cov),
+    oriver = local_coverage(sim_oriver$err_t, w_cov)
   )
   df_cov_long <- label_and_shift(df_cov, t_init, w_cov, "LocalCov")
-  
+  # length
   len_retro <- sim_retro$U - sim_retro$L
   len_okrr  <- sim_okrr$U  - sim_okrr$L
   len_otree <- sim_otree$U - sim_otree$L
   len_orule <- sim_orule$U - sim_orule$L
+  len_oriver <- sim_oriver$U - sim_oriver$L
   df_len <- tibble(
-    t     = date[251:5741],
-    retro = local_mean(len_retro, w_len)[251:5741],
-    okrr  = local_mean(len_okrr,  w_len)[251:5741],
-    otree = local_mean(len_otree, w_len)[251:5741],
-    orule = local_mean(len_orule, w_len)[251:5741]
+    t     = seq_along(len_retro),
+    retro = local_mean(len_retro, w_len),
+    okrr  = local_mean(len_okrr,  w_len),
+    otree = local_mean(len_otree, w_len),
+    orule = local_mean(len_orule, w_len),
+    oriver = local_mean(len_oriver, w_len)
   )
   df_len_long <- label_and_shift(df_len, t_init, w_len, "LocalLen")
   list(df_cov_long=df_cov_long, df_len_long=df_len_long)
@@ -151,37 +172,20 @@ plot_cov <- function(df_cov_long){
                   size =ifelse(Method=="RetroAdj",1.2,1)), lineend="round") +
     scale_color_manual(values=pal) + scale_alpha_identity() + scale_size_identity() +
     labs(x=TeX("$t$"), y="Local Coverage", color="Method") +
-    scale_x_date(
-      date_labels = "%Y-%m",    
-      date_breaks = "5 year"   
-    ) +
     coord_cartesian(ylim=c(0.7,1.0)) + base_theme
 }
 
 plot_len <- function(df_len_long){
-  if (!inherits(df_len_long$x_plot, "Date")) {
-    df_len_long$x_plot <- as.Date(df_len_long$x_plot)
-  }
-  
-  ggplot(df_len_long, aes(x = x_plot, y = LocalLen, color = Method, group = Method)) +
-    geom_line(
-      aes(
-        alpha = ifelse(Method == "RetroAdj", 1.0, 0.75),
-        size  = ifelse(Method == "RetroAdj", 1.2, 1.0)
-      ),
-      lineend = "round"
-    ) +
-    scale_color_manual(values = pal) +
-    scale_alpha_identity() +
-    scale_size_identity() +
-    labs(x = latex2exp::TeX("$t$"), y = "Local Width", color = "Method") +
-    scale_x_date(date_labels = "%Y-%m", date_breaks = "5 years") +
-    coord_cartesian(ylim = c(0, 120)) +
-    base_theme
+  ggplot(df_len_long, aes(x=x_plot, y=LocalLen, color=Method)) +
+    geom_line(aes(alpha=ifelse(Method=="RetroAdj",1.2,0.75),
+                  size =ifelse(Method=="RetroAdj",1.2,1)), lineend="round") +
+    scale_color_manual(values=pal) + scale_alpha_identity() + scale_size_identity() +
+    labs(x=TeX("$t$"), y="Local Width", color="Method") +
+    coord_cartesian(ylim=c(0, 0.15)) + base_theme
 }
 
 t_init <- 250; w_cov <- 250; w_len <- 250; method = "dtaci"
-lg_real <- build_long(rst_1, rst_2, rst_3, rst_4, t_init, w_cov, w_len, dates_embed)
+lg_real <- build_long(rst_1, rst_2, rst_3, rst_4, rst_5, t_init, w_cov, w_len)
 df_cov_long_real <- lg_real$df_cov_long; df_len_long_real <- lg_real$df_len_long
 
 p_cov_real <- plot_cov(df_cov_long_real)
@@ -198,5 +202,18 @@ final_plot_real <- row_real +
   guides(color = guide_legend(nrow = 1, byrow = TRUE,
                               override.aes = list(size = 3)))
 
-final_plot_real
+dir.create("experiments/results", showWarnings = FALSE, recursive = TRUE)
+write.csv(
+  result_summary,
+  file = "experiments/results/elec2_summary_with_river.csv",
+  row.names = FALSE
+)
+ggsave(
+  filename = "experiments/results/elec2_plot_with_river.png",
+  plot = final_plot_real,
+  width = 12,
+  height = 8,
+  dpi = 300
+)
 
+final_plot_real  # 12 x 8

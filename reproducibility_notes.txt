@@ -1,57 +1,51 @@
-Reproducibility Notes: Random Seeds and Data Ordering
-=====================================================
+Reproducibility Notes
+=====================
 
-This document summarizes the random seed settings used in the experiments and clarifies
-the deterministic data-ordering conventions adopted in the real-data scripts.
+Experiments are organized by manuscript section under `experiments/`.
 
-1. Repeated Synthetic Experiments
----------------------------------
+Shared defaults
+---------------
 
-The main repeated synthetic experiments are based on 50 replications.
+- `alpha = 0.1`
+- `t_init = 250`
+- default window size `w = 250`
+- repeated synthetic runs use master seed `2025`
 
-(a) simulations/sim_setting1_syn.R
-- Master seed used in `run_sim_parallel()`: 2025
-- Number of replications in the executed experiment: R = 50
-- Realized per-replication data-generation seeds: 2026, 2027, ..., 2075
-- The data generator `gen_beta_shift_only()` has default seed = 2025
-- The parallel loop is executed with `future.seed = TRUE`
+Section 4: Simulation study
+---------------------------
 
-(b) simulations/sim_setting2_syn.R
-- Master seed used in `run_sim_parallel_sim2()`: 2025
-- Number of replications in the executed experiment: R = 50
-- Realized per-replication data-generation seeds: 2026, 2027, ..., 2075
-- The data generator `gen_wendland()` is called with seed = 2025 + i
-- The parallel loop is executed with `future.seed = TRUE`
+- `experiments/main/simulation_study/sim_setting1_syn.R`
+  Synthetic Setting 1 summary experiment.
+- `experiments/main/simulation_study/sim_setting2_syn.R`
+  Synthetic Setting 2 summary experiment.
+- `experiments/main/simulation_study/sim_local_syn.R`
+  Representative local coverage and width curves.
+- `experiments/main/simulation_study/sim_robust.R`
+  Step-size robustness experiment.
 
-Accordingly, for the two main repeated synthetic experiments, the primary master seed is 2025,
-and the realized dataset-generation seeds are 2026 through 2075.
+Section 5: Real data analysis
+-----------------------------
 
-2. Single-Run Synthetic Illustration Scripts
---------------------------------------------
+- `experiments/main/real_data/sim_realworld_crime.R`
+  Communities and Crime experiment.
+- `experiments/main/real_data/sim_realworld_elec2.R`
+  Elec2 experiment.
+- `experiments/main/real_data/sim_realworld_stock.R`
+  AIG experiment.
 
-(a) simulations/sim_local_syn.R
-- Setting 1 single-run seed: 2020
-- Setting 2 single-run seed: 10
-- Note: although the helper generator for Setting 1 has default seed = 2025, the executed
-  example in this script uses seed = 2020
+Appendix
+--------
 
-(b) simulations/sim_robust.R
-- Synthetic data seed used in the executed script: 2026
+- `experiments/appendix/sim_NTK.R`
+  RBF vs NTK comparison on Elec2.
+- `experiments/appendix/window_sensitivity/sim_window_sensitivity.R`
+  Synthetic Setting 1 window-sensitivity experiment.
+- `experiments/appendix/runtime_benchmark/sim_runtime_benchmark.R`
+  Runtime benchmark.
 
-3. Real-Data Scripts
---------------------
+Main output locations
+---------------------
 
-(a) simulations/sim_realworld_crime.R
-- Explicit random seed: `set.seed(2026)`
-
-(b) simulations/sim_realworld_elec2.R
-- No explicit random seed is set in the script
-
-(c) simulations/sim_realworld_stock.R
-- No explicit random seed is set in the script
-
-(d) simulations/sim_dtaci_window_sensitivity.R
-- No explicit random seed is set in the script
-
-(e) simulations/sim_NTK.R
-- No explicit random seed is set in the script
+- Paper figures and tables: `experiments/results/`
+- Window sensitivity outputs: `experiments/results/appendix/window_sensitivity/`
+- Runtime benchmark outputs: `experiments/results/appendix/runtime_benchmark/`
