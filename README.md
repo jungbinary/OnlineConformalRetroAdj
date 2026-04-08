@@ -13,7 +13,7 @@ This repository provides code for the proposed RetroAdj method, including an eff
 .
 ├── R/                         # Core R implementations
 ├── python/                    # Python helpers for River-based baselines
-├── aci/                       # Adaptive conformal update rules
+├── aci/                       # ACI implementations
 ├── experiments/               # All runnable experiments
 │   ├── main/
 │   │   ├── simulation_study/  # Main synthetic experiments
