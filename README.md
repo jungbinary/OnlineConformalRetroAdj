@@ -18,11 +18,11 @@ This repository provides code for the proposed RetroAdj method, including an eff
 │   ├── main/
 │   │   ├── simulation_study/  # Main synthetic experiments
 │   │   └── real_data/         # Main real-data experiments
-│   └── appendix/              # Appendix-only experiments
+│   └── appendix/              # Appendix experiments
 │       ├── window_sensitivity/
 │       └── runtime_benchmark/
 ├── setup.R                    # Loads required packages and sources the main code
-├── reproducibility_notes.txt  # Experiment map in manuscript order
+├── reproducibility_notes.txt 
 ├── requirements.txt
 ├── README.md
 └── .gitignore
@@ -31,12 +31,11 @@ This repository provides code for the proposed RetroAdj method, including an eff
 ## Reproducibility
 
 To reproduce the experiments in the paper, start from `experiments/`.  
-The main results are organized under `experiments/main/`, and additional appendix analyses are provided under `experiments/appendix/`.
+The main results are organized under `experiments/main/`, and additional analyses are provided under `experiments/appendix/`.
 
 ## Citation
 
-If you use this repository in your research, please cite:
-
+If you find this repository useful for your research, please cite:
 ```bibtex
 @article{jun2025online,
   title={Online Conformal Inference with Retrospective Adjustment for Faster Adaptation to Distribution Shift},
