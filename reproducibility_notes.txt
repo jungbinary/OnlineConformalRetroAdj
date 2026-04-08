@@ -1,51 +1,23 @@
 Reproducibility Notes
 =====================
 
-Experiments are organized by manuscript section under `experiments/`.
+Experiments are organized under `experiments/`.
 
-Shared defaults
----------------
+Seed information
+----------------
+- Default settings: `alpha = 0.1`, `t_init = 250`, `w = 250`
+- Synthetic experiments use master seed `2025`
+- When `R = 50`, replication seeds are `2026` through `2075`
 
-- `alpha = 0.1`
-- `t_init = 250`
-- default window size `w = 250`
-- repeated synthetic runs use master seed `2025`
-
-Section 4: Simulation study
----------------------------
-
-- `experiments/main/simulation_study/sim_setting1_syn.R`
-  Synthetic Setting 1 summary experiment.
-- `experiments/main/simulation_study/sim_setting2_syn.R`
-  Synthetic Setting 2 summary experiment.
-- `experiments/main/simulation_study/sim_local_syn.R`
-  Representative local coverage and width curves.
-- `experiments/main/simulation_study/sim_robust.R`
-  Step-size robustness experiment.
-
-Section 5: Real data analysis
------------------------------
-
-- `experiments/main/real_data/sim_realworld_crime.R`
-  Communities and Crime experiment.
-- `experiments/main/real_data/sim_realworld_elec2.R`
-  Elec2 experiment.
-- `experiments/main/real_data/sim_realworld_stock.R`
-  AIG experiment.
-
-Appendix
---------
-
-- `experiments/appendix/sim_NTK.R`
-  RBF vs NTK comparison on Elec2.
-- `experiments/appendix/window_sensitivity/sim_window_sensitivity.R`
-  Synthetic Setting 1 window-sensitivity experiment.
-- `experiments/appendix/runtime_benchmark/sim_runtime_benchmark.R`
-  Runtime benchmark.
-
-Main output locations
+Script-specific seeds
 ---------------------
-
-- Paper figures and tables: `experiments/results/`
-- Window sensitivity outputs: `experiments/results/appendix/window_sensitivity/`
-- Runtime benchmark outputs: `experiments/results/appendix/runtime_benchmark/`
+- `experiments/main/simulation_study/sim_setting1_syn.R`
+  Master seed `2025`; replication seeds `2026` through `2075`
+- `experiments/main/simulation_study/sim_setting2_syn.R`
+  Master seed `2025`; replication seeds `2026` through `2075`
+- `experiments/main/simulation_study/sim_local_syn.R`
+  Seed `2020` for Setting 1; seed `10` for Setting 2
+- `experiments/main/simulation_study/sim_robust.R`
+  Synthetic dataset seed `2026`
+- `experiments/appendix/window_sensitivity/sim_window_sensitivity.R`
+  Master seed `2025`; replication seeds `2026` through `2075`
