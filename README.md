@@ -1,11 +1,10 @@
 # Online Conformal Inference with Retrospective Adjustment
 
 > **Online Conformal Inference with Retrospective Adjustment for Faster Adaptation to Distribution Shift**  
-> Jungbin Jun and Ilsang Ohn, 2025
+> Jungbin Jun and Ilsang Ohn  
+> *Pattern Recognition*, 2026 [[Link](https://www.sciencedirect.com/science/article/abs/pii/S0031320326013713)] [[arXiv](https://arxiv.org/abs/2511.04275)]
 
-Preprint available on arXiv: <https://arxiv.org/abs/2511.04275>
-
-This repository provides code for the proposed RetroAdj method, including an efficient leave-one-out implementation, along with the baseline methods used in the paper. It also includes scripts for reproducing the synthetic experiments and real-data analyses reported in the manuscript.
+This repository provides code for the proposed *RetroAdj* method, including an efficient leave-one-out implementation, along with the baseline methods used in the paper. It also includes scripts for reproducing the synthetic experiments and real-data analyses reported in the manuscript.
 
 ## Repository Structure
 
@@ -37,11 +36,14 @@ The main results are organized under `experiments/main/`, and additional analyse
 
 If you find this repository useful for your research, please cite:
 ```bibtex
-@article{jun2025online,
-  title={Online Conformal Inference with Retrospective Adjustment for Faster Adaptation to Distribution Shift},
-  author={Jun, Jungbin and Ohn, Ilsang},
-  journal={arXiv preprint arXiv:2511.04275},
-  year={2025}
+@article{jun2026online,
+  title   = {Online conformal inference with retrospective adjustment for faster adaptation to distribution shift},
+  author  = {Jun, Jungbin and Ohn, Ilsang},
+  journal = {Pattern Recognition},
+  volume  = {180},
+  pages   = {114406},
+  year    = {2026},
+  doi     = {10.1016/j.patcog.2026.114406}
 }
 ```
 
